@@ -1,14 +1,28 @@
 // https://www.acmicpc.net/problem/2512
 
-const numberList = [120, 110, 140, 150];
+let fs = require("fs");
+let input = fs.readFileSync("/dev/stdin").toString().split("\n");
 
-const result = numberList.reduce((acc, cur) => {
-  return acc + cur;
-}, 0);
-// 최대 값 130
-console.log(result / 4);
+let n = Number(input[0].split(" ")[0]);
+let arr = input[1].split(" ");
+let m = Number(input[2]);
 
-// 최소 값 121.25
-console.log(485 / 4);
+let start = 1;
+let end = arr.reduce((a, b) => Math.max(a, b));
 
-110, 120, 140, 150;
+let result = 0;
+while (start <= end) {
+  let mid = parseInt((start + end) / 2);
+  let total = 0;
+  for (x of arr) {
+    total += Math.min(mid, x);
+  }
+  if (total <= m) {
+    result = mid;
+    start = mid + 1;
+  } else {
+    end = mid - 1;
+  }
+}
+
+console.log(result);
