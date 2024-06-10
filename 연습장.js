@@ -1,28 +1,47 @@
-// https://www.acmicpc.net/problem/2512
+let graph = [[], [2, 3, 4], [1], [1, 5, 6], [1, 7], [3, 8], [3], [4], [5]];
 
-let fs = require("fs");
-let input = fs.readFileSync("/dev/stdin").toString().split("\n");
+let visited = Array(9).fill(false);
 
-let n = Number(input[0].split(" ")[0]);
-let arr = input[1].split(" ");
-let m = Number(input[2]);
-
-let start = 1;
-let end = arr.reduce((a, b) => Math.max(a, b));
-
-let result = 0;
-while (start <= end) {
-  let mid = parseInt((start + end) / 2);
-  let total = 0;
-  for (x of arr) {
-    total += Math.min(mid, x);
+class Queue {
+  constructor() {
+    this.items = {};
+    this.headIndex = 0;
+    this.tailIndex = 0;
   }
-  if (total <= m) {
-    result = mid;
-    start = mid + 1;
-  } else {
-    end = mid - 1;
+  enqueue(item) {
+    this.items[this.tailIndex] = item;
+    this.tailIndex++;
+  }
+  dequeue() {
+    const item = this.items[this.headIndex];
+    delete this.items[this.headIndex];
+    this.headIndex++;
+    return item;
+  }
+  peek() {
+    return this.items[this.headIndex];
+  }
+  getLength() {
+    return (this.tailIndex = this.headIndex);
   }
 }
 
-console.log(result);
+function bfs(graph, start, visited) {
+  let queue = new Queue();
+  queue.enqueue(start);
+
+  visited[start] = true;
+  while (queue.getLength() != 0) {
+    v = queue.dequeue();
+    console.log(v);
+
+    for (i of graph[v]) {
+      if (!visited[i]) {
+        queue.enqueue(i);
+        visited[i] = true;
+      }
+    }
+  }
+}
+
+bfs(graph, 1, visited);
