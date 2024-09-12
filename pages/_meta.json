@@ -1,0 +1,14 @@
+{
+  "index": "Study",
+  "-- Study": {
+    "type": "separator",
+    "title": "목차"
+  },
+  "Algorithm": "",
+
+  "-- Retrospection": {
+    "type": "separator",
+    "title": "Retrospection"
+  },
+  "retrospection": "Retrospection"
+}
