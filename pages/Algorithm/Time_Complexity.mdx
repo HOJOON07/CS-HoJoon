@@ -1,0 +1,207 @@
+## 시간 복잡도
+
+- 정의 : 실행시간과 입력값 n의 함수 관계
+- n의 의미 파악 : n은 문제의 크기, 입력 데이터의 크기, 반복 횟수 등 문맥에 따라 다를 수 있으므로 정확히 이해해야 합니다.
+- 빅오표기법(점근법)을 쓴다.
+- 시간복잡도 vs 실행시간
+  > 시간복잡도를 통해서 실행시간을 정확하게 알 수는 없다.
+
+### O(n)
+
+```python
+
+	for i range(n)
+		print("proc") # 이 함수의 실행시간이 너무 크면 안되는 경우도 있다.
+```
+
+```python
+# 리스트에서 최대값을 찾는 경우
+def find_max(arr):
+    max_value = arr[0]
+    n = len(arr)
+    for i in range(n):
+        if arr[i] > max_value:
+            max_value = arr[i]
+    return max_value
+```
+
+### O(1)
+
+```python
+a = 7
+b = 34
+print("hello");
+```
+
+```python
+input(n)
+for i in range(1000):
+    print(n)
+```
+
+### O(n^2)
+
+```python
+n = 10  # N을 원하는 값으로 설정
+
+for i in range(n):
+    print("hello")
+
+for j in range(n):
+    print("bye")
+```
+
+> O(n) + O(n) = O(2n) = O(n)
+
+```python
+n = 100 # N을 원하는 값으로 설정
+
+for i in range(N):
+for j in range(N):
+print("hello")
+```
+
+> O(n) \* O(n) = O(n^2)
+
+```python
+n = 100  # N을 원하는 값으로 설정
+m = 10
+for i in range(N):
+    for j in range(m):
+        print("hello")
+```
+
+> O(n) \* O(m) = O(nm)
+
+### O(nm)
+
+```python
+lst1 = [1, 2, 3, 4, 5]
+lst2 = [3, 4, 5, 6, 7, 8, 10]
+common = []
+for i in range(len(lst1)):
+    for j in range(len(lst2)):
+        if lst1[i] == lst2[j]:
+            common.append(lst1[i])
+
+
+# 두 리스트 예제
+lst1 = [1, 2, 3, 4, 5]
+lst2 = [3, 4, 5, 6, 7, 8, 10]
+print(find_common_elements(lst1, lst2))
+```
+
+### 함수, 연산자, 메서드의 시간복잡도
+
+- list
+
+```python
+# 총 7개의 방이 존재한다고 가정
+# visited는 지금까지 방문한 모든 방의 번호를 저장
+visited = [0, 1, 3, 5]
+if 3 in visited:  # O(n)
+    print("room number 3 visited")
+
+for node in visited:
+		print(node)
+```
+
+```python
+리스트에 in 연산자를 쓰는 경우
+
+visited = [True, True, False, True, False, True, False]
+
+# if visited[3] == True:
+
+if visited[3]:
+print("room number 3 visited")
+
+```
+
+> 인덱스를 통해 접근 하는 경우
+
+- hashtable
+
+```python
+visited = {0: True, 1: True, 3: True, 5: True}
+if 3 in visited: # O(1)
+    print("room number 3 visited")
+
+visited = set()
+visited = {0, 1, 3, 5}
+if 5 in visited: # O(1)
+    print("room number 5 visited")
+```
+
+> 해쉬테이블은 big O(1)으로 바로 알 수 있다. 위에 리스트에 in연산자와는 다르다. 상당히 신기하다.
+
+- sort() - $O(nlogn)$
+- heappush() / heappop() - $O(logn)$
+
+- deque
+
+  ```python
+  import time
+  from collections import deque
+
+  # Deque를 사용한 예제
+  def deque_example():
+      dq = deque()
+      start_time = time.time()
+
+      # 맨 앞에 100000번 요소 추가
+      for i in range(100000):
+          dq.append(i)
+
+      # 맨 앞에서 100000번 요소 제거
+      for i in range(100000):
+          dq.popleft()
+
+      end_time = time.time()
+      print(f"Deque 작업 시간: {end_time - start_time} 초")
+
+  # List를 사용한 예제
+  def list_example():
+      lst = []
+      start_time = time.time()
+
+      # 맨 앞에 100000번 요소 추가
+      for i in range(100000):
+          lst.append(i)
+
+      # 맨 앞에서 100000번 요소 제거
+      for i in range(100000):
+          del lst[0]
+
+      end_time = time.time()
+      print(f"List 작업 시간: {end_time - start_time} 초")
+
+  # 실행
+  deque_example() # Deque 작업 시간: 0.012186765670776367 초
+  list_example()  # List 작업 시간: 3.028756856918335 초
+  ```
+
+# 2. 시간복잡도 심화
+
+## 흔히 실수하는 예시
+
+- for - while 중첩 되었다고 O(n^2)이 아니다.
+  ```python
+  def longestConsecutive(nums):
+          nums = set(nums) # O(n) 중복된 숫자를 없애기 위함
+          answer = 0
+
+          for num in nums: # O(n)
+              if num -1 not in nums:
+                  cnt = 1
+                  while num + 1 in nums:
+                      num += 1
+                      cnt += 1
+                  answer = max(answer, cnt)
+          return answer
+
+  nums = [1,2,3,1,8,4,5,6,7,8,9,10]
+  print(longestConsecutive(nums)) # 10
+  ```
+
+## 상수 시간도 완전 무시할 순 없다.
