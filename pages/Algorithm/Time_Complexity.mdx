@@ -186,6 +186,7 @@ if 5 in visited: # O(1)
 ## 흔히 실수하는 예시
 
 - for - while 중첩 되었다고 O(n^2)이 아니다.
+
   ```python
   def longestConsecutive(nums):
           nums = set(nums) # O(n) 중복된 숫자를 없애기 위함
@@ -205,3 +206,58 @@ if 5 in visited: # O(1)
   ```
 
 ## 상수 시간도 완전 무시할 순 없다.
+
+- O(V+E)
+  - 시간복잡도가 몇일까??
+    > V + E이다. 이유는 각 전체 노드의 길이(V)와 + 노드당 연결되어있는 포인터들(E)만 체크하기 때문에 V + E이다. V + E가 상수 시간은 아니다.
+
+```python
+from collections import deque
+
+def bfs(graph, start_node):
+visited = set()
+queue = deque([start_node])
+visited.add(start_node)
+
+    while queue:
+        cur_node = queue.popleft()
+
+        for next_node in graph[cur_node]:
+            if next_node not in visited:
+                queue.append(next_node)
+                visited.add(next_node)
+
+graph = {
+'A': ['B', 'C'],
+'B': ['A', 'D', 'E'],
+'C': ['A', 'F'],
+'D': ['B'],
+'E': ['B', 'F'],
+'F': ['C', 'E']
+}
+start_node = 'A'
+bfs(graph, start_node);
+```
+
+### 재귀의 시간복잡도
+
+- 계산이 가능은 하지만, 엄밀하진 못하다.
+- overhead가 크다.
+- 따라서 보수적으로 계산해야한다.
+
+### 백트래킹의 시간복잡도
+
+- 계산이 불가능한 영역이 있다.
+- nqueen
+
+## 3. 코테 실전 적용
+
+### 기준점 : 10^8
+
+### 시간복잡도는 만능이 아니다.
+
+### 다만 풀이에 대한 확신으로써 쓸 수 있다.
+
+> 제약조건이 M x N일때, (400 x 400) 10^8보다 작았기 때문에 4중 포문으로 풀어도 가능했던 예시
+
+### 알고리즘 떠올리기
