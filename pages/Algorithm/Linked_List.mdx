@@ -58,3 +58,54 @@ class LinkedList(object):
       current.next= new_node
 
 ```
+
+## get method 설계하기
+
+> 연결 리스트에서 get은 단순 배열과는 다르게 랜덤 액세스가 불가능하다. 그래서 첫번째 인덱스부터 해당 타겟 밸류까지 하나하나 순차적으로 접근해야 한다.
+
+1. head에 접근
+2. 원하는 인덱스로 이동
+3. value반환
+
+- Big O (n)
+
+```python
+  def get(self,idx):
+    current = self.head
+    for _ in range(idx):
+      current = current.next
+    return current.value
+```
+
+## insert_at구현하기 (원하는 인덱스에 밸류 삽입하기.)
+
+- 특정 인덱스에 밸류를 넣으려면 넥스트 밸류의 주소를 연결해준다.
+- 그리고 이전 값의 넥스트 밸류 주소를 삽입하는 밸류의 주소로 연결해준다.
+  ![](https://velog.velcdn.com/images/ghwns1007/post/080e4521-ac26-4b09-b7d9-f9978847fa39/image.png)
+
+## remove_at(idx)
+
+- insert_at과 비슷하다.
+  > 삭제하려고 하는 특정 인덱스의 이전 값까지 가고 주소를 그 다음 인덱스의 주소로 바꿔준다. 이렇게 하면 가비지 컬렉터에 의해서 알아서 자동으로 삭제될 것임.
+
+## insert_back (tail 버전)
+
+- 이전의 append와 다른 좀 다르게 구현
+- tail이 있다면 Big O(1)으로 구현 가능
+
+```python
+  def append_tail(self,value):
+    new_node = Node(value)
+    if self.head is None:
+      self.head = new_node
+    else:
+      self.tail.next = new_node
+      self.tail = self.tail.next
+```
+
+#### 연결 리스트는 다양한 구현 방법이 있다.
+
+- 다음 주소값 사용
+- 이전 주소값 사용
+- 헤드와 테일 사용
+- 헤드만 사용
