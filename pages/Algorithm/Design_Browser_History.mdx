@@ -1,0 +1,24 @@
+# 문제
+
+You have a browser of one tab where you start on the homepage and you can visit another url, get back in the history number of steps or move forward in the history number of steps.
+
+Implement the BrowserHistory class:
+
+BrowserHistory(string homepage) Initializes the object with the homepage of the browser.
+void visit(string url) Visits url from the current page. It clears up all the forward history.
+string back(int steps) Move steps back in history. If you can only return x steps in the history and steps > x, you will return only x steps. Return the current url after moving back in history at most steps.
+string forward(int steps) Move steps forward in history. If you can only forward x steps in the history and steps > x, you will forward only x steps. Return the current url after forwarding in history at most steps.
+
+### 다음과 같은 BrowserHistory 클래스를 구현하세요:
+
+1. BrowserHistory(string homepage)
+   브라우저의 초기 페이지로 homepage를 설정하면서 객체를 초기화합니다.
+
+2. void visit(string url)
+   현재 페이지에서 url로 이동합니다. 이때 앞으로 갈 수 있는 기록은 모두 지워집니다.
+
+3. string back(int steps)
+   기록에서 steps만큼 뒤로 이동합니다. 기록에서 x 단계만 뒤로 갈 수 있고 steps > x인 경우, 최대 x 단계까지만 뒤로 이동합니다. 이동 후의 현재 URL을 반환합니다.
+
+4. string forward(int steps)
+   기록에서 steps만큼 앞으로 이동합니다. 기록에서 x 단계만 앞으로 갈 수 있고 steps > x인 경우, 최대 x 단계까지만 앞으로 이동합니다. 이동 후의 현재 URL을 반환합니다.
