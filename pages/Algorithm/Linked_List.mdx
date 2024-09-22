@@ -109,3 +109,81 @@ class LinkedList(object):
 - 이전 주소값 사용
 - 헤드와 테일 사용
 - 헤드만 사용
+
+## 리액트에서 연결리스트 자료구조를 사용하는 방법
+
+```jsx
+class Node {
+  constructor(value) {
+    this.value = value;
+    this.next = null;
+    this.prev = null;
+  }
+}
+
+class DoublyLinkedList {
+  constructor() {
+    this.head = null;
+    this.tail = null;
+  }
+
+  add(value) {
+    const newNode = new Node(value);
+    if (!this.head) {
+      this.head = newNode;
+      this.tail = newNode;
+    } else {
+      this.tail.next = newNode;
+      newNode.prev = this.tail;
+      this.tail = newNode;
+    }
+  }
+}
+
+const imageList = new DoublyLinkedList();
+imageList.add({ id: 1, src: "image1.jpg", alt: "First Image" });
+imageList.add({ id: 2, src: "image2.jpg", alt: "Second Image" });
+imageList.add({ id: 3, src: "image3.jpg", alt: "Third Image" });
+
+function Gallery() {
+  const [currentNode, setCurrentNode] = useState(imageList.head);
+
+  return (
+    <div>
+      {currentNode.prev && (
+        <img
+          src={currentNode.prev.value.src}
+          alt={currentNode.prev.value.alt}
+          className="prev-image"
+        />
+      )}
+      <img
+        src={currentNode.value.src}
+        alt={currentNode.value.alt}
+        className="main-image"
+      />
+      {currentNode.next && (
+        <img
+          src={currentNode.next.value.src}
+          alt={currentNode.next.value.alt}
+          className="next-image"
+        />
+      )}
+      <div>
+        <button
+          onClick={() => setCurrentNode(currentNode.prev)}
+          disabled={!currentNode.prev}
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => setCurrentNode(currentNode.next)}
+          disabled={!currentNode.next}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```

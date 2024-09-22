@@ -50,5 +50,36 @@ static array라고 부르기도 한다.
 > 파이썬은 리스트 자료형을 통해 이미 동적 배열이 잘 구현되어 있다.
 > 중요한건 <strong>리스트의 연산법과 시간복잡도만 잘 고려하자</strong>
 
+## 리액트에서 배열과 객체 및 해시 맵을 사용하는 방법
 
+```jsx
+const postsById = {
+  1: { id: 1, title: "First Post", content: "Content of first post" },
+  2: { id: 2, title: "Second Post", content: "Content of second post" },
+};
 
+const postIds = [1, 2];
+
+function PostList() {
+  return (
+    <div>
+      {postIds.map((id) => (
+        <Post key={id} post={postsById[id]} />
+      ))}
+    </div>
+  );
+}
+
+function Post({ post }) {
+  return (
+    <div>
+      <h2>{post.title}</h2>
+      <p>{post.content}</p>
+    </div>
+  );
+}
+```
+
+```jsx
+const posts = {[ { id: 1, title: "First Post", content: "Content of first post" }],[ { id: 2, title: "Second Post", content: "Content of second post" }]}
+```
