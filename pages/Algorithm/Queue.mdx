@@ -1,0 +1,39 @@
+# 자료구조 (Queue)
+
+#### 파이썬에는 잘 구현된 큐가 있다.(Deque-> 덱)
+
+## 큐
+
+> 큐는 시간 순서상 먼저 저장한 데이터가 먼저 출력되는 선입선출 FIFO 형식으로 데이터를 저장하는 자료구조입니다.
+> 큐의 뒤쪽에 데이터를 추가하는 것을 enqueue라고 합니다. 또한 큐의 앞쪽에서 데이터를 꺼내는 것을 dequeue라고 합니다.
+
+## 리스트로 구현된 큐
+
+- pop을 하면 Big O(n)으로 시간복잡도가 비효율적이다.
+
+```python
+q = []
+q.append()
+q.pop()
+```
+
+## Linked List로 구현된 Deque
+
+- 앞뒤로 enque, deque를 할 수 있는 양방향 자료구조다.
+
+```python
+from collections import dequeue라고
+queue = deque()
+
+queue.append()
+queue.popleft()
+```
+
+### Deque 사용법
+
+- append() : deque 뒤(오른쪽)에 값 추가
+- appendleft() : deque 앞(왼쪽)에 값 추가
+- remove() : deque 안의 특정 값 삭제
+- pop() : deque 뒤(오른쪽)의 값 삭제 후 반환
+- popleft() : deque 앞(왼쪽)의 값 삭제 후 반환
+- rotate() : deque 안의 값들 회전

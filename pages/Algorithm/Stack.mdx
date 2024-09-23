@@ -1,0 +1,23 @@
+# 자료주고 Stack
+
+- 큐를 구현할 때는 Array List를 쓰지 않는다.
+- 스택을 쓸 때는 pop,push 연산이 Big O(1)이라 파이썬의 Array List를 쓴다.
+
+> Stack은 시간 순서상 가장 최근에 추가한 데이터가 가장 먼저 나오는 후입선출 LIFO 형식으로 데이터를 저장하는 자료구조이다.
+> Stack의 top에 데이터를 추가하는 것을 push라고 하고 stack의 top에서 데이터를 추출 하는 것은 popd이라고 합니다.
+
+## 리스트로 Stack 써보기
+
+- Big O(1)
+
+```python
+stack = []
+stack.append(1)
+stack.append(2)
+stack.append(3)
+
+stack.pop()
+stack.pop()
+stack.pop()
+
+```
