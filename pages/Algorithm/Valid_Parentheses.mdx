@@ -1,0 +1,41 @@
+# Valid Parentheses
+
+## 괄효 유효 문제
+
+Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
+
+An input string is valid if:
+
+Open brackets must be closed by the same type of brackets.
+Open brackets must be closed in the correct order.
+Every close bracket has a corresponding open bracket of the same type.
+
+제약 조건 -> 10^4
+
+## 문제 풀이
+
+```python
+class Solution:
+    def isValid(self, s: str) -> bool:
+        stack = []
+        for p in s:
+            if p == "{":
+                stack.append("}")
+            elif p == "[":
+                stack.append("]")
+            elif p == "(":
+                stack.append(")")
+            elif stack and stack[-1] == p:
+                stack.pop()
+            else:
+                return False
+
+        return not stack
+```
+
+## 문제를 풀기위해 접근한 방법
+
+- 스택 자료구조를 사용하자
+- 닫는 괄호가 나오면 제일 최신의 여는 괄호랑 짝이 맞아야 한다.
+- 닫는 괄호가 제일 최신의 여는 괄호랑 짝이 안 맞으면 False 리턴하자.
+- 닫는 괄호가 제일 최신의 여는 괄호랑 짝이 맞으면 스택에서 빼주면 된다.
