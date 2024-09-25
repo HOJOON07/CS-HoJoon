@@ -1,16 +1,29 @@
 {
-  "index": "HoJoon",
-  "-- Study": {
+  "index": "HoJoon Profile",
+  "-- 기술 노트": {
     "type": "separator",
-    "title": "목차"
+    "title": "기술 노트"
   },
   "Algorithm": "",
   "DesignPattern": "",
-  "Computer_Science": "",
+  "ComputerScience": "",
+  "React": "",
+  "MFA": "",
+  "TypeScript": "",
+  "-- 프로젝트": {
+    "type": "separator",
+    "title": "프로젝트"
+  },
+  "Projects": "",
+  "-- 발표 자료": {
+    "type": "separator",
+    "title": "발표 자료"
+  },
+  "Presentation": "Presentation",
 
   "-- Retrospection": {
     "type": "separator",
-    "title": "Retrospection"
+    "title": "회고"
   },
-  "retrospection": "Retrospection"
+  "Retrospection": "Retrospection"
 }

@@ -1,0 +1,161 @@
+# NAWEKE (스포츠 편집샵)
+
+## 프로젝트 기간 2022/11/14 ~ 2022/11/25
+
+### 프로젝트 선정 이유
+
+- 지금까지 학습했던 기술스택을 활용할 수 있고 실력을 향상 시킬 수 있을것으로 판단되어서 선정하게 되었다.
+
+### 참여개발자
+
+- 프론트엔드 4명
+- 백엔드 3명
+
+기술스택
+
+- react
+- javascript
+- sass
+- html
+- eslint
+- prettier
+
+## 트렐로
+
+- 매일 아침 10시에 진행되는 데일리 미팅전에 각 팀원이 서로 해야할일을 정리해서 업데이트함
+- 티켓단위로 업무를 분배함
+- 트렐로를 통해 효율적인 커뮤니케이션이 가능했고 백엔드와 프론트엔드 간의 업무 싱크를 맞출 수 있었음.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/867c98c5-2fe0-4169-a01a-043550ef0bca/image.png)
+
+## 노션
+
+- 매일 진행되는 회의를 기록함
+- 회의를 기록함으로써 프로젝트의 진행방향이 꼬이지 않고 초기 기획단계에서 기획했던 방향으로 진행될 수 있었음.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/ce989c0a-56a3-4b85-b3f4-f823b1078841/image.png)
+
+## 포스트맨
+
+- API명세를 통해 백엔드와의 소통이 수월해졌다.
+- 구체적으로 어떤 데이터를 보내줘야 하는지 어떻게 담아서 보내줘야하는지 정확하게 인지를 하게 되니까 통신이 수월해졌다.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/54bbaacb-3d55-426e-b0e4-0f281ad29d47/image.png)
+
+## 맡은 역할
+
+#### 장바구니
+
+- 사용자가 쇼핑하면서 장바구니에 담은 상품을 장바구니 페이지에서 보여준다.
+- 사용자의 편의를 위해 장바구니 페이지에서 상품 삭제 버튼을 만들었다.
+- 사용자가 장바구니에 담긴 상품의 수량변경이 가능한 기능을 구현하였고 수량을 변경하면 서버에 저장된 상품의 수량 또한 변경되도록 구현하였다.
+- 사용자의 편의를 위해 장바구니에 담긴 상품을 개별선택, 개별선택해제, 전체선택, 전체선택해제 하는 기능을 만들어서 장바구니 담긴 상품만을 결제하는 것이 아닌 장바구니에 담긴 상품중에서 원하는 상품만 구매가 가능하도록 구현하였다.
+- 결제의 마지막 단계인 총가격을 구하는 단계에서 상품의 수량과, 선택이 해제 되었을때 변하는 가격을 계산할 수 있도록 구현하였다.
+
+# 프로젝트 회고는 2탄에서 계속됩니다..!
+
+## 나위키 프로젝트 회고 2탄!
+
+### 프로젝트를 진행하면서 절대 잊지말아야 할 것 하나
+
+- 프로젝트 회고 2탄에서는 기능을 구현하기 위해 고민했던 값진 시간들을 저 스스로 기록하고 싶고 남겨두고 싶어서 제가 작성한 코드를 중심으로 회고를 작성해보려고 합니다.
+
+### 상품 삭제
+
+```jsx
+const cartDelete = (productOptionId) => {
+  setCartList(
+    cartList.filter((product) => product.productOptionId !== productOptionId)
+  );
+  const beforeDeleted = cartList.filter(
+    (el) => el.productOptionId === productOptionId
+  );
+
+  fetch(`http://10.58.52.172:3000/carts/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization:
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoxMiwiaWF0IjoxNjY5MDI2ODA5LCJleHAiOjE2NzE2MTg4MDksImlzcyI6ImFkbWluIiwic3ViIjoiYWNjZXNzVG9rZW4ifQ.DhfgeERBkf4s7uin2NCCSLX2tFNcWXRs-vgMvY4InJs",
+    },
+    body: JSON.stringify({
+      cartId: [`${beforeDeleted[0].cartId}`],
+    }),
+  })
+    .then((response) => response.json())
+    .then((result) => {
+      if (result.message === "cart deleted") {
+        alert("삭제가 완료되었습니다.");
+        getCartList();
+      } else {
+        alert("다시 시도해주세요!");
+      }
+    });
+};
+```
+
+cartList는 서버에서 받아오는 장바구니 상품 리스트이다.
+삭제 버튼을 누르면 특정 상품을 제외한 상품들을 cartList에 담아주고 그 상품을 서버에 보내준다.
+어떻게 하면 원하는 상품을 삭제할수 있을지, 화면에서 삭제된 상품을 제외하고 렌더링 시켜줘야 했는데 그 두가지 로직을 구현하는데 많은 시간을 고민하였다.
+고민 끝에 filter함수를 사용해서 기능을 구현 할수 있었다.
+
+### 선택 상품 삭제
+
+```
+const selectDelete = () => {
+const afterDeleted = cartList.filter(
+el => !checkItems.includes(el.productOptionId)
+);
+setCartList(afterDeleted);
+
+    const beforeDeleted = cartList.filter(
+      el => checkItems.includes(el.productOptionId)
+    );
+
+    const deleteCartId = beforeDeleted.map(el => {
+      return el.cartId;
+    });
+    fetch(`http://10.58.52.172:3000/carts/`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjoxMiwiaWF0IjoxNjY5MDI2ODA5LCJleHAiOjE2NzE2MTg4MDksImlzcyI6ImFkbWluIiwic3ViIjoiYWNjZXNzVG9rZW4ifQ.DhfgeERBkf4s7uin2NCCSLX2tFNcWXRs-vgMvY4InJs',
+      },
+      body: JSON.stringify({
+        cartId: deleteCartId,
+      }),
+    })
+      .then(response => response.json())
+      .then(result => {
+        if (result.message === 'cart deleted') {
+          alert('삭제가 완료되었습니다.');
+          getCartList();
+        } else {
+          alert('다시 시도해주세요!');
+        }
+      });
+      };
+```
+
+장바구니에 여러 상품들이 담겨 있으면 선택한 상품들은 장바구니에서 삭제하고 선택하지 않은 상품들은 냅둬야 하는데 어떻게 하면 두가지 기능을 처리할수 있을까 고민하였고 각각 다른 변수에 담아서 기능을 구현 할수 있었다.
+체크된 상품들을 담는 상태관리를 통해
+첫번째로, 서버에서 받아오는 cartList와 filter함수를 통해 체크되지 않은 상품들을 걸러내고 includes를 사용해서 상품이 가지고 있는 각각의 고유한 아이디를 비교해서 상품들을 특정지을 수 있었다.
+
+### 총 가격
+
+```
+const totalPrice = cartList
+    .filter(el => checkItems.includes(el.productOptionId))
+    .reduce((a, b) => a + b.quantity * b.price, 0);
+```
+
+정말 짧은 코드이지만 생각보다 변하는 상품의 수량과 선택된 상품의 가격을 구해서 계산하는 것이 어려웠다.
+그렇지만 구글링을 통해 reduce함수를 알게 되었고 MDN에서 계속 콘솔을 찍어보면서 함수를 사용해본 끝에 원하는 코드를 만들어낼 수 있었다.
+
+# 프로젝트를 마치면서
+
+> 이번 프로젝트를 진행하면서 정말 크게 배운것이 하나 있었다.
+> 프로젝트 첫 플래닝 미팅을 하면서 기획방향을 못잡고 어떤 기능을 구현할지에 대해 초점을 맞추면서 회의를 진행했었는데 그러다 보니까 사용자 입장에서, 또 서비스를 준비하는 기업 입장에서 전혀 고려하지 못했었다. 멘토님의 조언을 통해서 우리는 프로젝트를 진행하면서 실제 사용자의 입장에서 흐름을 따라가야 하고 또 기업입장에서는 최대한 이익을 내기 위한 서비스를 만들어야 한다는 것이었다. 앞으로 내가 어떤 프로젝트를 진행하던지 제일 중요한 조언이라는 생각을 하게 되었다.
+
+> 끝으로 프로젝트를 진행하면서 제일 기분이 좋았던 말이 있다. 같이 프로젝트를 진행한 팀원이 해줬던 말인데 호준님 저희 팀원들이 했던 말인데 다른건 몰라도 확실한거는 호준님이 동기중에서 프로젝트를 통해 제일 많이 성장한 사람일꺼라고 해줬던 말이다. 누군가에게는 정말 쉬운 장바구니 였을지 몰라도 기능을 구현하기 위해 정말 누구보다 열심히, 치열하게 고민했고 백엔드와 통신하면서 수많은 에러를 마주하고 해결했던 시간들이 분명 힘들고 어려웠지만 정말 값진 시간들이었고 성장하는 나를 보는 즐거움을 알게 되었다.

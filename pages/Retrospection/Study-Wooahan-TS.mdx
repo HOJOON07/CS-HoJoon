@@ -1,0 +1,305 @@
+## 우아한 타입스크립트 with 리액트 스터디 회고하기
+
+#### 벌써 스터디회고만 세번째다. 이번엔 이전에 작성했던 회고와는 다르게 써볼까 한다.
+
+### 왜 타입스크립트 였는지??
+
+> 내가 타입스크립트를 너무 못한다고 생각이 들었다. 기본적인 타입 뭐 넘버, 스트링, 인터페이스, 유니온 등등 쓰는 것만 쓰고 유틸리티 타입을 조합한다던지, 제네릭, 커스텀 타입 등 이런 부분들에서는 항상 어려웠고 다양한 기능을 활용하지 못하는거 같아서 깊은 공부가 필요하다고 생각했습니다.
+
+### '우아한 타입스크립트 with 리액트' 책을 읽은 이유
+
+- 내가 스터디리더다 보니까 사실 내 맘대로 책 선정하고 내 맘대로 스터디원 뽑아서 진행하면 되는 막강한 권력이 있음 ㅋㅋ
+
+> 배달의 민족? 네카라쿠**_배_** 의 그 배달의 민족에서는 어떻게 개발하는지, 실무에서는 타입스크립트를 써본 적이 없으니까 좀 궁금하기도 했다.
+> 그리고 당시에 고민하던 책이 있었는데 [캡틴 판교님의 책](https://www.yes24.com/Product/Goods/119410497), [이펙티브 타입스크립트](https://www.aladin.co.kr/shop/wproduct.aspx?ISBN=8966263135&start=pnaver_02)가 있었는데 이 책을 고른 이유는 타입스크립트? 솔직히 강의도 두 번이나 들었는데 공부방식이 잘못되었다고 느꼈음. 어려운개념을 걍 수업으로만 듣거나 눈으로 보기만 하니까 막상 써보지도 못하고 까먹기만 하는게 문제였다. 실제 예시랑 내가 좀 따라쳐보고 적용도 해보면서 공부해야겠다고 생각했음
+
+## 책에 대한 이야기
+
+- 사실 이전까지는 회고에서 스터디에 대한 소감이나 배운 점, 아쉬운 점들을 많이 이야기했지만 이번엔 책에 대해서도 좀 이야기를 해볼까 한다.
+
+### 아는 만큼 보이는 책
+
+솔직히 타입스크립트 입문자거나 타입스크립트를 배우려고 읽기에는 맞지 않다. 유틸리티 타입이나 제네릭 타입이 적용된 코드를 예시로 보여주는데 어렵다. 심지어 책에서는 한번도 언급하지 않았던 타입이 나오고 그걸 예시로 보여줌.
+
+- 실제로 이런 코드였음
+
+```ts
+type ErrorRecord<Key extends string> = Exclude<Key, ErrorCodeType> extends never
+  ? Partial<Record<Key, boolean>>
+  : never;
+```
+
+이거 바로 보이나요? 여기에 나온 유틸리티 타입 심지어 책에서 뭐 빌드업이 되어있던거도 아니었음. 그래서 이거 따라가려고 진짜 엄청난 공부를 해서 감사합니다?ㅋㅋㅋ
+
+#### 이 만큼을 공부함
+
+### 1. Exclude?
+
+타입스크립트에서는 조건부 형식으로 타입을 정의할 수 있는데요, 아래와 같은 형태를 취합니다.
+
+```ts
+T extends U ? X : Y
+```
+
+조건식 결과에 따라 X가 될 수도, Y가 될 수도 있습니다.
+
+타입스크립트는 용도에 맞게 조건부 타입을 활용한 새로운 타입들을 미리 정의해 두었고, 이것을 Predefined conditional types 라고 하며 그 중 하나가 Exclude 입니다.
+
+실제 Exclude는 아래와 같이 정의되어 있습니다.
+
+```ts
+type Exclude<T, U> = T extends U ? never : T;
+```
+
+즉, T에 오는 타입들 중 U에 오는 것들은 제외하겠다는 의미입니다.
+
+```ts
+type Fruit = "cherry" | "banana" | "strawberry" | "lemon";
+
+type RedFruit = Exclude<Fruit, "banana" | "lemon">;
+// type RedFruit = "cherry" | "strawberry" 와 같다.
+```
+
+```ts
+interface Player {
+  flyingPet: string;
+  matchRank: string;
+  matchWin: string;
+  matchTime: string;
+  matchRetired: string;
+  rankinggrade2: string;
+}
+
+type Match = Exclude<keyof Player, "flyingPet">;
+// type Match = "matchRank" | "matchWin" | "matchTime" | "matchRetired" | "rankinggrade2" 와 같다.
+```
+
+### 2. Partial
+
+-특정 타입의 부분 집합을 만족하는 타입을 정의할 수 있습니다.
+
+```ts
+interface Address {
+  email: string;
+  address: string;
+}
+
+type MyEmail = Partial<Address>;
+const me: MyEmail = {}; // 가능
+const you: MyEmail = { email: "noh5524@gmail.com" }; // 가능
+const all: MyEmail = { email: "noh5524@gmail.com", address: "secho" }; // 가능
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  brand: string;
+  stock: number;
+}
+
+// Partial - 상품의 정보를 업데이트 (put) 함수 -> id, name 등등 어떤 것이든 인자로 들어올수있다
+// 인자에 type으로 Product를 넣으면 모든 정보를 다 넣어야함
+// 그게 싫으면
+interface UpdateProduct {
+  id?: number;
+  name?: string;
+  price?: number;
+  brand?: string;
+  stock?: number;
+}
+// 위와 같이 정의한다.
+// 그러나 같은 인터페이스를 또 정의하는 멍청한 짓을 피하기 위해서 우리는 Partial을 쓴다.
+function updateProductItem(prodictItem: Partial<Product>) {
+  // Partial<Product>이 타입은 UpdateProduct 타입과 동일하다
+}
+```
+
+### 3. Record
+
+- 타입스크립트의 유틸리티 타입 중 하나로, 인덱스 시그니처와 유사한 기능을 한다.
+
+```ts
+type Score = {
+  [name: string]: number;
+};
+
+// Score와 동일한 역할
+type ScoreRecord = Record<string, number>;
+
+let scores: ScoreRecord = {
+  치즈볼: 100,
+  초코볼: 200,
+};
+```
+
+- Record가 인덱스 시그니처와 다른 점은, Key로 문자열 리터럴을 사용할 수 있다는 것이다.
+
+```ts
+// 인덱스 시그니처는 key 타입으로 문자열 리터럴 사용 불가
+type Score = {
+  [name: "치즈볼" | "초코볼"]: number;
+};
+```
+
+> ErrorRecord 타입은 오직 Key가 ErrorCodeType에 완전히 속하는 경우에만 유효한 타입을 생성함.
+> 이 타입은 해당 에러 코드들의 발생 여부를 나타내는 객체를 다루기 위한 타입으로 사용하고 그 외의 경우에는 타입이 never이 되어, 잘못된 키 사용을 타입 시스템 수준에서 막는다.
+
+- Exclude`<T, U>` 유틸리티 타입은 TypeScript에서 조건부 타입(Conditional Types)을 사용하여 정의됩니다.
+
+  > 이 유틸리티 타입의 목적은 타입 T에서 타입 U에 포함된 모든 서브타입을 제거하는 것입니다.
+  > 이를 이해하려면 조건부 타입의 작동 방식과 분배적(distributive) 특성을 이해해야 합니다.
+
+- 조건부 타입 (Conditional Type)
+
+  > 조건부 타입은 T extends U ? X : Y 형식을 가집니다. 여기서 T가 U를 상속하거나,
+  > U에 할당 가능한 타입이면 결과는 X가 되고, 그렇지 않으면 Y가 됩니다.
+
+- Exclude의 정의
+
+```
+Exclude`<T, U>`의 정의를 살펴보면, T extends U ? never : T 입니다.
+```
+
+> 여기서 중요한 것은 조건부 타입이 각 타입에 대해 개별적으로 적용된다는 것입니다. 이것은 조건부 타입이 분배적이라는 의미입니다.
+
+> - 분배적 특성
+>   조건부 타입은 유니온 타입(|)을 사용하여 T에 여러 타입이 있을 경우 각 타입에 대해 개별적으로 조건을 적용합니다.
+>   예를 들어 T가 A | B | C이고 U가 B일 경우, Exclude`<T, U>`는 다음과 같이 계산됩니다:
+>   A extends B ? never : A → A (A는 B와 다르므로 A를 반환)
+>   B extends B ? never : B → never (B는 B와 같으므로 never를 반환)
+>   C extends B ? never : C → C (C는 B와 다르므로 C를 반환)
+
+```
+ 결과적으로 Exclude`<A | B | C, B>`는 A | C가 됩니다.
+```
+
+- 왜 U를 제외한 결과가 되는가?
+
+> Exclude`<T, U>`에서 T 타입이 U 타입에 할당 가능하다면, 즉 T가 U의 일부분이라면, 그 결과는 never가 됩니다. never는 TypeScript에서 타입이 존재하지 않음을 나타냅니다. 따라서 이 조건이 참인 경우들을 모두 제외한 나머지 타입들만이 결과로 남게 됩니다.
+
+이렇게 Exclude`<T, U>`는 T 유형에서 U 유형에 속하는 모든 서브타입을 제거한 결과를 생성하는 유틸리티 타입입니다. 이는 특정 타입을 제외하고 나머지 타입을 사용하고자 할 때 매우 유용합니다.
+
+```ts
+Exclude<Key, ErrorCodeType> extends never:
+```
+
+> Exclude는 Key에서 ErrorCodeType에 포함된 모든 타입을 제거합니다.
+> extends never는 Exclude의 결과가 never인 경우를 체크합니다. 즉, Key의 모든 요소가 ErrorCodeType에 속하는 경우입니다. 다시 말해, Key가 ErrorCodeType의 하위 집합인 경우에 해당합니다.
+
+### 결과적 타입
+
+> 조건이 참인 경우 (Key가 ErrorCodeType의 하위 집합일 때): `Partial<Record<Key, boolean>>` 타입을 반환합니다. 이는 Key를 키로 사용하고, 그 값으로 boolean을 갖는 객체이며, 모든 속성은 선택적입니다. 이는 Key로 주어진 에러 코드들의 발생 여부를 추적할 수 있는 객체를 의미합니다.
+> 조건이 거짓인 경우: never를 반환합니다. 이는 Key 중에 ErrorCodeType에 포함되지 않는 어떤 키도 포함하고 있다면, ErrorRecord 타입을 사용할 수 없음을 의미합니다.
+> 사용 예
+> 이를 통해 ErrorRecord 타입은 특정 에러 코드만을 키로 사용하는 객체를 안전하게 정의할 수 있게 해주며, 잘못된 키가 사용되는 것을 컴파일 시간에 잡아낼 수 있습니다. 예를 들어, 다음과 같이 사용할 수 있습니다:
+
+```ts
+type ErrorCodeType = "Error404" | "Error500";
+type ValidErrorRecord = ErrorRecord<"Error404" | "Error500">; // 유효함: Partial<Record<'Error404' | 'Error500', boolean>>
+type InvalidErrorRecord = ErrorRecord<"Error404" | "Error500" | "Error408">; // 무효함: never
+```
+
+- 위 코드에서 ValidErrorRecord는 유효한 타입이 되어, Error404와 Error500 각각의 발생 여부를 boolean 값으로 가질 수 있는 선택적 속성을 가진 객체를 정의할 수 있습니다. 반면, InvalidErrorRecord는 Error408이 ErrorCodeType에 포함되지 않으므로, 타입이 never가 되어 사용할 수 없습니다.
+
+> 다시 보니까 또 헷갈리는데 여튼 어려웠음.
+
+### 불친절한 책
+
+- 예시코드가 있었는데 실제로는 동작하지 않는 코드였음
+  - 주석쳐져있는게 책에서 나온 코드이고 아래 코드는 내가 고친 코드.
+
+```ts
+const PromotionList = [
+  { type: "product", name: "chicken" },
+  { type: "product", name: "pizza" },
+  { type: "card", name: "cheer-up" },
+];
+
+// T는 반드시 배열 타입이어야 합니다.
+type ElementOf<T extends Array<any>> = T[number];
+// type ElementOf<T> = (typeof T)[number];
+
+type PromotionItemType = ElementOf<typeof PromotionList>;
+```
+
+- 이 밖에도 오타?랑 동작이 안되는 코드가 많았고 갑자기 키워드만 던져주고 혼자 이야기를 시작하는 느낌이랄까.. 여튼 여러모로 불친절한 책은 맞다.!
+
+### 실용적인 책
+
+- 책이 어려웠지만 그만큼 도움되는 내용이 정말 많았다. 실제로 당장 내 프로젝트에 적용해서 코드를 고치기도 하고 또 진행중인 프로젝트에 써먹기도 했다.
+
+#### 요렇게 if문을 빡빡하게 체크한다던지
+
+```ts
+const exhaustiveCheck = (param: never) => {
+  throw new Error("정의되지 않은 반응형 사이즈가 들어왔음.!");
+};
+
+switch (type) {
+  case "2xl":
+    return { className: payload };
+  case "xl":
+    return { className: payload };
+  case "lg":
+    return { className: payload };
+  case "md":
+    return { className: payload };
+  case "sm":
+    return { className: payload };
+  default:
+    exhaustiveCheck(type);
+    return { className };
+}
+```
+
+#### PickOne 커스텀 유틸리티 함수라던지
+
+```ts
+type PickOne<T> = {
+  [P in keyof T]: Record<P, T[P]> &
+    Partial<Record<Exclude<keyof T, P>, undefined>>;
+}[keyof T];
+```
+
+#### Axios Interceptor라던지
+
+#### useImperativeHandle훅이라던지 등 등
+
+- 실용적인 책이었고 배운게 많았다.
+
+#### 여튼 정리해보자면
+
+### 스터디를 통해 얻은 것
+
+- 타입 시스템
+- 타입스크립트의 장점
+- 여러 기본 적인 타입들을 다시 상기시킬 수 있었다.
+- 타입 조합
+  - 인덱스 시그니처, 맵드, 템플릿 리터럴
+- 제네릭
+- 타입 확장과 가드
+- 식별 유니온
+- Exhaustiveness Checking을 읽고 실제 내 코드에 적용해보기
+- 커스텀 유틸리티 타입
+- axios interceptor
+- 빌더 패턴
+- useImperativeHandle 다시 보기
+
+> 쓰고 보니 정말 많은 걸 배우고 볼 수 있었던 책이었다.
+
+### 소감
+
+- 책 읽기 스터디가 끝나면 항상 혼자서 하는 말이 있는데 책 한권 읽은 것도 성장이다. (진짜임)
+- 스스로에게 좀 칭찬해주고 싶습니다.
+  - 책에서 하는 말들을 열심히 따라가려고 따로 구글링도 해보고 노력을 많이 했습니다.
+- 스터디가 끝나면 일주일내로 책을 빠르게 다시 한 번 읽어볼 생각입니다.(4일 지났는데 아직 못 읽음.ㅋㅋㅋ 일요일에는 꼭 읽어야지)
+
+#### 스터디에 대해서
+
+**앞으로 계획 **
+
+- 작년 2월부터였나?? 생각해보니 거의 안쉬고 매주 스터디를 해온거 같다. (리액트 네이티브, 성능 최적화, 테스트 코드, 리얼 월드(이건 거의 실패), nest, 함수형, 리액트, 타입스크립트) 몇 개 더있던거 같은데..? 기억이 안나는데 진짜 많이했음. 이번 스터디가 끝나고 보니 지쳤다기보다는 내가 너무 스터디를 형식적으로 의무적으로 하고 있는건 아닌가 생각이 들었다. 그래서 한 달 쉬고 다시 하기로 했다. 물론 디자인 패턴 스터디 바로 하고 싶었는데 한 명 빼고 다 탐탁치 않아하시길래 겸사겸사 쉬는거임. 그 동안 나혼자 디자인패턴 공부해서 블로그에 글써볼까 함(1편 쓰고 있음)
+
+## 끝!
+
+> 졸리다.
