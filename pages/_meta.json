@@ -15,7 +15,19 @@
     "type": "separator",
     "title": "프로젝트"
   },
-  "Projects": "",
+  "DevWorld": "",
+  "ReactUI": "",
+  "Design_System": "",
+  "Hochelin": "",
+  "Hokaotalk": "Hokaotalk",
+  "Hz_card": "Hz_card",
+  "Meet_&_Notes": "Meet_&_Notes",
+  "MusicPlayer": "MusicPlayer",
+  "NextPixel": "NextPixel",
+  "Pokemon": "Pokemon",
+  "Say_It": "Say_It",
+  "WedLink": "WedLink",
+  "Wemong": "Wemong",
   "-- 발표 자료": {
     "type": "separator",
     "title": "발표 자료"
