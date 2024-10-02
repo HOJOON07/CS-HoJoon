@@ -1,0 +1,268 @@
+# 데브월드 트러블 슈팅 1
+
+## 1. 사용자의 인증 여부 관리하기
+
+> 로그인 여부에 따른 접근 제한 처리하기
+
+### DevWorld 플랫폼을 이용하는 유저는 두 종류로 나누어진다.
+
+- 로그인을 완료한 유저
+- 로그인을 하지 않은 유저
+
+### 로그인한 유저의 데이터가 필요한 페이지 (사용자의 인증 여부를 확인하는 페이지)
+
+#### 1. 네비게이션바의 동적인 UI
+
+> 로그인 여부에 따른 서비스 제공과 로그인 버튼, 알림 UI 표시
+
+![](https://velog.velcdn.com/images/ghwns1007/post/4d29687e-c8ee-4a38-9d4e-be6ddf17ffb0/image.png)
+![](https://velog.velcdn.com/images/ghwns1007/post/d86b88c1-a691-45da-bf5f-ae031b5125da/image.png)
+
+#### 2. 유저의 프로필 페이지
+
+- 유저의 리드미 데이터
+- 프로필 수정 버튼 UI
+
+프로필 페이지의 방문한 유저가 자신의 프로필 페이지를 방문한 경우 리드미와, 상세 프로필을 수정할 수 있는 버튼이 생긴다.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/f584f8de-5984-4502-8404-567f68e3d406/image.png)
+![](https://velog.velcdn.com/images/ghwns1007/post/ccc74f66-cf92-4b4c-b88b-d21007ef6c1f/image.png)
+
+#### 3. 유저의 프로필 수정 페이지
+
+![](https://velog.velcdn.com/images/ghwns1007/post/97cbf013-eba8-4472-b5fb-2eef65e44285/image.png)
+
+#### 4. 아티클 상세 페이지
+
+> 팔로우 버튼과 프로필 보기 버튼으로 UI가 구분됩니다.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/7bb0c71f-aafa-48f0-8a29-7aba9f339209/image.png)
+
+![](https://velog.velcdn.com/images/ghwns1007/post/e85cea6a-b0a2-4b91-8ffa-16b2a8e19c2c/image.png)
+
+#### 5. 워크스페이스 페이지
+
+> 워크스페이스 페이지는 로그인한 사용자만 이용 가능하며 이곳은 비공개 아티클, 작성중인 아티클들을 모아 볼 수 있습니다.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/69c55790-737f-4972-a964-eddc2a19b5f2/image.png)
+
+## 데브월드 유저 FLOW
+
+1. 사용자는 로그인을 한다.
+2. 백엔드에서 JWT를 돌려준다.
+3. 로그인한 사용자로 데브월드에 접속한다.
+
+   > ![](https://velog.velcdn.com/images/ghwns1007/post/72a2f622-ed20-449c-871a-5af4d102cf80/image.png)
+
+### 해결해야 하는 문제
+
+1. 사용자의 로그인 여부를 효율적으로 관리하기
+
+- 동적인 UI
+
+2. 사용자의 데이터를 최신 상태로 유지하기
+
+- 프로필 페이지의 리드미 데이터, 프로필 수정 페이지의 상세 데이터
+
+3. JWT (액세스 토큰, 리프레쉬 토큰) 관리하기
+
+- 액세스 토큰의 유효기간이 지났다면 재발급 받아주기, 리프레쉬 토큰마저 만료되었다면 접속한 사용자를 로그아웃 처리, 혹은 로그인 페이지로 리다이렉트 시켜주기
+
+4. 인증되지 않은 사용자가 권한이 필요한 페이지의 접근하는 것을 방지하기
+
+- 권한이 필요한 페이지 : 워크스페이스, 프로필 수정 페이지
+
+### 해결 방법
+
+1. TanStack Query를 활용해서 애플리케이션 전역에서 사용되는 State를 만들었습니다.
+2. Axios Interceptor를 활용해서 JWT를 리프레쉬하는 로직을 구성했습니다.
+
+### 결과
+
+- Tanstack Query의 캐싱과 자동 리페칭을 통해서 중복된 네트워크 요청을 방지
+- 로그아웃을 하면 동적으로 UI를 변경하고 (네비게이션의 메뉴 구성과 버튼)
+- 프로필을 수정하면 데이터를 다시 최신화로 유지
+
+### 코드
+
+- user 데이터를 받아오는 useQuery
+
+```ts
+import { getMyInfo } from "@/shared/api/get-my-info-api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+export function createGlobalUserState<T>(
+  queryKey: unknown,
+  initialData: T | undefined = undefined,
+  defaultEnabled: boolean
+) {
+  return function (enabled: boolean = defaultEnabled) {
+    const queryClient = useQueryClient();
+
+    const {
+      data: user,
+      isError,
+      isLoading,
+      isSuccess,
+    } = useQuery({
+      queryKey: [queryKey],
+      queryFn: getMyInfo,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchIntervalInBackground: false,
+      retry: 3,
+      enabled,
+    });
+
+    function setData(data: Partial<T>) {
+      queryClient.setQueryData([queryKey], data);
+    }
+
+    function resetData() {
+      queryClient.refetchQueries({
+        queryKey: [queryKey],
+      });
+    }
+    return { user, setData, resetData, isLoading, isError, isSuccess };
+  };
+}
+```
+
+- 유저의 데이터를 저장하는 곳
+
+```ts
+import { createGlobalUserState } from "@/app/_store/create-global-query";
+
+export interface UserProfileType {
+  bio: string | null;
+  devName: string | null;
+  email: string | null;
+  id: number | null;
+  instagram: string | null;
+  linkedin: string | null;
+  location: string | null;
+  position: string | null;
+  role: string;
+  socialEtc: string | null;
+  github: string | null;
+  image: string | null;
+}
+
+export const UserInitialState: UserProfileType = {
+  bio: null,
+  devName: null,
+  email: null,
+  id: null,
+  instagram: null,
+  linkedin: null,
+  location: null,
+  position: null,
+  role: "User",
+  socialEtc: null,
+  github: null,
+  image: null,
+};
+
+export const useUserState = createGlobalUserState<UserProfileType>(
+  "user",
+  UserInitialState,
+  true
+);
+```
+
+- JWT 리프레쉬 로직
+
+```ts
+import axios from "axios";
+import { setCookie } from "./set-cookie";
+import { setCookieAction } from "../lib/set-cookie-action";
+import { BASE_URL } from "./base-url";
+
+export const getLocalStorageAccessToken = () => {
+  return localStorage.getItem("accessToken");
+};
+
+export const getLoalStorageRefreshToken = () => {
+  return localStorage.getItem("refreshToken");
+};
+
+export const instance = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+//요청
+instance.interceptors.request.use(
+  (config) => {
+    const accessToken = getLocalStorageAccessToken();
+    if (accessToken) {
+      config.headers["authorization"] = `Bearer ${accessToken}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export const RotateAccessToken = async () => {
+  const refreshToken = getLoalStorageRefreshToken();
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/auth/token/access`,
+      {},
+      {
+        headers: {
+          authorization: `Bearer ${refreshToken}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    // 리프레시 토큰이 만료되면 여기서 에러를 처리
+    throw error;
+  }
+};
+
+export const RotateRefreshToken = async () => {};
+
+//응답
+
+instance.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  async (error) => {
+    const originalConfig = error.config;
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalConfig._retry
+    ) {
+      originalConfig._retry = true;
+      try {
+        const { accessToken } = await RotateAccessToken();
+        await setCookieAction("accessToken");
+        // await setCookie(accessToken);
+        localStorage.setItem("accessToken", accessToken);
+        instance.defaults.headers.common[
+          "authorization"
+        ] = `Bearer ${accessToken}`;
+        return instance(originalConfig);
+      } catch (error: any) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        return Promise.reject(error);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default instance;
+```

@@ -1,0 +1,97 @@
+# 데브월드 트러블 슈팅 2
+
+## NEXT.js Middleware를 사용한 사용자의 URL 조작 방지, 인증 상태 판별하기
+
+### 문제 상황
+
+1. 로그인하지 않은 사용자가 워크스페이스, 프로필 상세 페이지와 같이 로그인한 사용자만 접근 가능한 페이지에 URL을 조작해서 들어가는 문제.
+2. 로그인한 사용자가 자신의 프로필 수정 페이지가 아닌 곳에 접근을 시도하는 경우
+3. 로그인을 했음에도 회원가입 페이지, 로그인 페이지에 접근을 시도하는 경우
+
+### 문제 해결을 위한 아이디어
+
+1. 사용자는 회원가입, 로그인을 하게 되면 서버로부터 JWT를 발급받는다.
+2. 발급받은 JWT를 NEXT.js의 서버액션을 사용해서 쿠키를 생성한다.
+3. Middleware를 활용해서 쿠키를 확인하고 쿠키가 없다면 JWT가 없는 사용자 즉, 로그인 하지 않은 사용자기 때문에 적절한 페이지로 리다이렉트 시켜준다.
+
+#### 미들 웨어 코드
+
+```ts
+import { NextRequest, NextResponse } from "next/server";
+
+export async function middleware(request: NextRequest) {
+  const cookiesAcessToken = request.cookies.get("accessToken");
+  const cookiesRefreshToken = request.cookies.get("refreshToken");
+
+  const url = request.nextUrl.clone();
+
+  // 쿠키가 둘 다 있는 경우
+  if (cookiesAcessToken && cookiesRefreshToken) {
+    if (url.pathname === "/signup" || url.pathname === "/signin") {
+      // signup 페이지로 접근하려는 경우 articles로 리다이렉트
+      url.pathname = "/articles";
+      return NextResponse.redirect(url);
+    }
+  } else {
+    // 쿠키가 하나라도 없는 경우
+    if (
+      url.pathname.startsWith("/workspace") ||
+      url.pathname.startsWith("/profiles/edit")
+    ) {
+      // workspace나 profiles/edit 페이지로 접근하려는 경우 signin으로 리다이렉트
+      url.pathname = "/articles";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 나머지 경우에는 원래 요청대로 진행
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/workspace/:path*", "/profiles/edit/:path*", "/signup", "/signin"],
+};
+```
+
+### 미들 웨어를 사용한 이유
+
+> NEXT.js 공식문서를 보면 middleware의 사용 사례에 대한 설명이 있습니다. 현재 상황을 해결하기 위한 좋은 예시이고, 공식문서에서 설명하는 인증 및 권한 부여 상황과 잘 들어맞으면서, 성능 최적화를 위한 리디렉션을 활용하기에 적합하다고 생각했습니다.
+
+#### 사용 사례
+
+미들웨어를 애플리케이션에 통합하면 성능, 보안 및 사용자 경험이 크게 향상될 수 있습니다. 미들웨어가 특히 효과적인 일반적인 시나리오는 다음과 같습니다.
+
+- 인증 및 권한 부여: 특정 페이지나 API 경로에 대한 액세스 권한을 부여하기 전에 사용자 신원을 확인하고 세션 쿠키를 확인합니다.
+- 서버 측 리디렉션: 특정 조건(예: 로케일, 사용자 역할)에 따라 서버 수준에서 사용자를 리디렉션합니다.
+- 경로 재작성: 요청 속성에 따라 API 경로나 페이지에 대한 경로를 동적으로 다시 작성하여 A/B 테스트, 기능 출시 또는 레거시 경로를 지원합니다.
+- 봇 감지: 봇 트래픽을 감지하고 차단하여 리소스를 보호하세요.
+- 로깅 및 분석: 페이지나 API에서 처리하기 전에 요청 데이터를 캡처하고 분석하여 통찰력을 얻습니다.
+- 기능 플래깅: 원활한 기능 출시 또는 테스트를 위해 기능을 동적으로 활성화하거나 비활성화합니다.
+
+#### 미들웨어가 최적의 접근 방식이 아닐 수 있는 상황을 인식하는 것도 마찬가지로 중요합니다. 염두에 두어야 할 몇 가지 시나리오는 다음과 같습니다.
+
+- 복잡한 데이터 가져오기 및 조작: 미들웨어는 직접적인 데이터 가져오기나 조작을 위해 설계되지 않았습니다. 대신 이 작업은 경로 핸들러나 서버 측 유틸리티에서 수행되어야 합니다.
+- 무거운 계산 작업: 미들웨어는 가볍고 빠르게 반응해야 하며 그렇지 않으면 페이지 로드가 지연될 수 있습니다. 무거운 계산 작업이나 장기 실행 프로세스는 전용 경로 핸들러 내에서 수행해야 합니다.
+- 광범위한 세션 관리: 미들웨어가 기본 세션 작업을 관리할 수 있는 반면, 광범위한 세션 관리는 전담 인증 서비스나 경로 핸들러 내에서 관리해야 합니다.
+- 직접 데이터베이스 작업: 미들웨어 내에서 직접 데이터베이스 작업을 수행하는 것은 권장되지 않습니다. 데이터베이스 상호 작용은 경로 핸들러 또는 서버 측 유틸리티 내에서 수행해야 합니다.
+
+### 유의할 점
+
+- 미들웨어는 서버에서 실행하는 코드이다. localStorage, useEffect를 활용할 수 없음.
+
+### 결과
+
+#### - 로그인 하지 않은 사용자가 로그인이 필요한 페이지에 URL을 조작해서 접근을 시도하는 경우
+
+![](https://velog.velcdn.com/images/ghwns1007/post/4b7ed653-fe1f-4286-8b89-608398b8730b/image.gif)
+
+#### - 로그인을 완료한 사용자가 접근이 제한된 페이지에 URL을 조작해서 접근을 시도하는 경우
+
+![](https://velog.velcdn.com/images/ghwns1007/post/514c113d-2e3c-4af0-8606-0b23cdd1e660/image.gif)
+
+#### 미들웨어는 요청이 완료되기 전에 코드를 실행한다.
+
+- 쿠키가 없는 요청 (로그인 하지 않은 사용자) -> 응답을 가로채서 다른 페이지로 리다이렉트
+
+> localStorage와 useEffect를 사용해서 사용자의 인증 여부를 판별하면 로딩 스피너를 활용하거나, URL 조작시
+> 페이지에 잠깐 접속한 후 튕겨져 나가는 현상이 발생했는데 미들웨어를 사용하면 애초에 응답을 가로채서 URL을 조작을 막고 허용되지 않는 접근은 리다이렉트 함으로써 사용자 경험과 성능을 개선할 수 있었습니다.
