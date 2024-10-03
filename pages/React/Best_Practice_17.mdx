@@ -1,0 +1,157 @@
+# 17 All React Best Practice
+
+## 1. Constants
+
+#### 1. 숫자 값은 변수로 선언하고 export 해서 쓰자.
+
+- MAX_FREE_TODOS라는 변수를 선언해서 숫자로 쓰이는 값들은 언제 어디서 재사용될지 모르니 상수화 시키자.
+
+```js filename="lib/constants.js"
+export const MAX_FREE_TODOS = 3;
+```
+
+```jsx filename="Component.jsx"
+import { useState } from "react";
+
+export default function Best_Practice_17() {
+  const [todoContents, setTodoContents] = useState("");
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+
+        if (todos.lenth === MAX_FREE_TODOS && !isAuthenticated) {
+          alert(`you need to sign in to add more than ${MAX_FREE_TODOS} todos`);
+          return;
+        }
+        // 원래라면 MAX_FREE_TODOS가 아니라 3이라는 숫자가 들어가 있었다.
+      }}
+    ></form>
+  );
+  return <div>Best_Practice_17</div>;
+}
+```
+
+#### 2. 스트링또한 상수화
+
+- 문자열또한 변순를 선언해서 재사용성을 높이자.
+
+```jsx filename="lib/constants"
+export const SENSITVE_WORDS = ["password", "credit"];
+```
+
+```jsx filename="Component"
+import { useState } from "react";
+
+export default function Best_Practice_17() {
+  const [todoContents, setTodoContents] = useState("");
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+
+        if (
+          todoContents.includes("password") ||
+          todoContents.includes("credit card")
+        ) {
+          alert("Please do not use sensitive information");
+          return;
+        }
+      }}
+    ></form>
+  );
+  return <div>Best_Practice_17</div>;
+}
+```
+
+#### 3. useState의 initialState도 상수화
+
+- 유의해야하는것은 컴포넌트 바깥에서 선언해야 한다. 컴포넌트가 리렌더링 될때마다 다시 새로 만들어질것인데 성능측면에서 좋지 않다.
+
+```jsx filename="Component"
+import { useState } from "react";
+
+const initialState = [
+  { id: 1, content: "Buy Groceries", completed: false },
+  { id: 1, content: "Buy Groceries", completed: false },
+  { id: 1, content: "Buy Groceries", completed: false },
+];
+
+export default function Best_Practice_17() {
+  const [todoContents, setTodoContents] = useState(initialState);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+
+        if (
+          todoContents.includes("password") ||
+          todoContents.includes("credit card")
+        ) {
+          alert("Please do not use sensitive information");
+          return;
+        }
+      }}
+    ></form>
+  );
+  return <div>Best_Practice_17</div>;
+}
+```
+
+## 2. Folder Structure
+
+> 서비스가 커지기 전에, 이제 막 세팅하는 프로젝트에 적용하는 모범적인 폴더구조이다. 또한 폴더구조에는 정답이 없다는 것을 기억하자.
+> 하지만 초기에 폴더구조를 고민하면서 무의미한 시간을 보내고 개발 생산성을 떨어뜨리지 않도록 주의하자.
+> 나중에 서비스가 커지거나 팀 컨벤션이 생기더라도 유연하게 적용할 수 있는 폴더구조에 대해서 알아보자.
+
+- assets : 프로젝트에서 사용되는 리소스들
+- components : form, header, button과 같은 컴포넌트들, 또한 하위 폴더를 생성할 수 있으며 폴더는 UI, 도메인, 기능 별로 그룹화 할 수 있다.
+- lib : utils, hooks, types, constants
+- context : ContextAPI, Redux와 같은 상태 관리와 관련한 폴더
+
+## 3. Components
+
+> 디자이너로부터 디자인 시안을 받고 사용자의 액션을 담을 수 있는 리액트 웹 페이지를 만든다고 했을 때, 우리는 과연 컴포넌트를 어떻게 구성할 것인가?
+
+#### 1. 재사용성을 기준으로
+
+재사용이 가능하다면 독립적인 컴포넌트로 설계할 수 있을 것이다.
+
+> 반대로 앱에서 단 한 번만 사용된다고 했을 때, 컴포넌트로 분리하지 않는 것이 맞는 원칙인가?
+
+#### 2. 재사용하지 않더라도.
+
+> 앱에서 단 한 번만 사용된다고 했을 때, 가독성을 위해 혹은 반대로 중요하지 않은 컴포넌트 일 경우 독립적인 컴포넌트로 만들 수 있다.
+
+```jsx filename="분리한 컴포넌트"
+export const App = () => {
+  return (
+    <div>
+      <BackGroundHeader />
+      <div>
+        <main>main</main>
+        <button>todo button</button>
+      </div>
+    </div>
+  );
+};
+```
+
+```jsx filename="분리하지 않은 컴포넌트"
+export const App = () => {
+  return (
+    <div>
+      <header>back ground header 입니다.</header>
+      <div>
+        <main>main</main>
+        <button>todo button</button>
+      </div>
+    </div>
+  );
+};
+```
+
+- 적절한 예시처럼 안 보일 수도 있지만, 실제로 tailwindCSS와 같이 인라인 스타일을 작성한다거나 이미지, 텍스트가 포함되어 있으면 불필요한 공간만 차지하고 컴포넌트의 가독성을 헤칠 수 있다.
