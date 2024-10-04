@@ -1,11 +1,15 @@
-export const App = () => {
+export const Button = () => {
+  const isAuthenticated = true;
   return (
-    <div>
-      <BackGroundHeader />
-      <div>
-        <main>main</main>
-        <button>todo button</button>
-      </div>
+    <div className="space-y-2">
+      {isAuthenticated ? (
+        <button>button입니다~</button>
+      ) : (
+        <>
+          <button>button 입니다.</button>
+          <button>button 입니다.</button>
+        </>
+      )}
     </div>
   );
 };
