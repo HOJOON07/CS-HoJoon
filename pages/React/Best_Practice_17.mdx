@@ -231,3 +231,51 @@ export const App = () => {
 ```
 
 ## 5. 재사용되는 컴포넌트에 레이아웃 스타일을 추가하지 말자.
+
+![](https://velog.velcdn.com/images/ghwns1007/post/def83950-fccc-4539-8ceb-d6f6928b4e28/image.png)
+
+![](https://velog.velcdn.com/images/ghwns1007/post/624f67bc-e629-4341-a56d-ad21d9c96044/image.png)
+
+재사용되는 H1 컴포넌트를 만들었다고 가정해보자. 똑같은 스타일을 가졌지만 margin이 없기 때문에 사용하는 위치에 따라 margin을 유연하게 적용해주고 싶다. 어떻게 해야할까??
+div 태그를 만들어서 margin이 필요한 곳에 감싸줘야 할까??
+
+```jsx filename="margin 추가"
+export const Component = () => {
+  return (
+    <>
+      <div className="mb-5">
+        <H1>Title</H1>
+      </div>
+      <main>main</main>
+    </>
+  );
+};
+```
+
+#### 틀렸다고 말할 순 없지만 더 깔끔한 방법이 있다.
+
+- H1 컴포넌트에 className prop을 받아서 레이아웃이 필요한 경우에 동적으로 결합 하도록 설계해주면 됨.
+
+> 아래는 tailwindCSS를 사용하는 예시이다. 다른 스타일링 도구를 사용하더라도 비슷하다. prop만 잘 받도록 구현해주면 된다.
+
+```jsx filename="H1"
+
+type H1props = {
+  children:React.ReactNode
+  className?:string
+}
+
+export default function H1({className,children}:H1props){
+  return <h1 className={cn("프로젝트에서 정의한 H1 스타일들",className)}>{children}</h1>
+}
+```
+
+## 6. 타입스크립트를 사용하자
+
+- 개발자의 실수를 방지 (오타)
+- 허용되지 않는 Props를 입력한 경우 알려준다.
+- 인텔리전스 제공
+
+> 어쨌든 타입스크립트를 사용하는 것이 최선의 방법인 것 같음.
+
+## 7. Keep Component Simple

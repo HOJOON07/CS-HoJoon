@@ -146,10 +146,11 @@ const { setActiveItem } = useAccordionContext();
 - 여기서 context 값은 두 개의 프로퍼티를 가진 JavaScript 객체이며, 그 중 하나는 함수입니다. MyApp이 리렌더링할 때마다(예: 라우트 업데이트), 이것은 다른 함수를 가리키는 다른 객체가 될 것이므로 React는 useContext(AuthContext)를 호출하는 트리 깊숙한 곳의**_ 모든 컴포넌트도 리렌더링해야 합니다._**
 - 소규모 앱에서는 문제가 되지 않습니다. 그러나 currentUser와 같은 기초 데이터가 변경되지 않았다면 리렌더링할 필요가 없습니다. React가 이 사실을 활용할 수 있도록 login 함수를 useCallback으로 감싸고 객체 생성은 useMemo로 감싸면 됩니다. 이것은 성능 최적화를 위한 것입니다
 
-```
+```jsx
 const AuthContxt = createContext({
-  currentUser, login
-})
+  currentUser,
+  login,
+});
 
 function MyApp() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -171,8 +172,8 @@ function MyApp() {
 
 ### 최적화하기 (공식문서)
 
-```JS
-import { useCallback, useMemo } from 'react';
+```jsx
+import { useCallback, useMemo } from "react";
 
 function MyApp() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -182,10 +183,13 @@ function MyApp() {
     setCurrentUser(response.user);
   }, []);
 
-  const contextValue = useMemo(() => ({
-    currentUser,
-    login
-  }), [currentUser, login]);
+  const contextValue = useMemo(
+    () => ({
+      currentUser,
+      login,
+    }),
+    [currentUser, login]
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>
