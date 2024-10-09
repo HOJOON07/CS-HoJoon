@@ -58,3 +58,799 @@
   - 그냥 이름만 적혀 있는 경우, 현재 위치의 node_modules를 찾아보고 없으면 상위 폴더로 이동하여 찾는다.
 
 ![](https://velog.velcdn.com/images/ghwns1007/post/2b1faeb9-fd00-47a5-8081-4819e201cb08/image.png)
+
+### Symbolic Link
+
+- 컴퓨팅에서 심볼릭 링크 또는 기호화된 링크는 절대 경로 또는 상대 경로의 형태로 된 다른 파일이나 디렉토리에 대한 참조를 포함하고 있는 특별한 종류의 파일이다.
+  Symbolic Link 를 이용한 패키지 예제
+  Node.js
+
+#### npm 으로 생성된 프로젝트를 심볼릭 링크로 연결하는 방법
+
+우선 노드 버전은 20.9.0, npm은 10.2.1을 사용했다.
+
+#### 루트 프로젝트 생성
+
+```bash
+➜ mkdir npm-link-example
+
+➜ cd npm-link-example
+
+➜ npm init -y
+```
+
+#### 하위 패키지 생성 후 링크 처리
+
+```bash
+➜ mkdir package-a
+
+➜ cd package-a
+
+➜ npm init -y
+
+➜ cd ..
+
+➜ mkdir node_modules
+
+➜ ln -s ../package-a ./node_modules/package-a
+
+➜ code .
+
+```
+
+#### 링크로 만든 패키지 사용
+
+```bash
+// npm-link-example/package-a/index.js
+
+module.exports = "package-a";
+​
+// npm-link-example/main.js
+
+const packageA = require("package-a");
+
+console.log(packageA);
+​
+➜ node main.js
+```
+
+- 이렇게 일일히 설정해줄 필요 없이 npm link 명령어로 간단하게 처리 가능하다.
+
+```bash
+➜ mkdir package-b
+
+➜ cd package-b
+
+➜ npm init -y
+
+➜ cd ..
+
+➜ npm link ./package-b
+```
+
+```jsx
+// npm-link-example/package-b/index.js
+
+module.exports = "package-b";
+```
+
+```jsx
+// npm-link-example/main.js
+
+const packageA = require("package-a");
+const packageB = require("package-b");
+
+console.log(packageA, packageB);
+```
+
+```bash
+➜ node main.js
+```
+
+### npm workspaces
+
+- npm v7부터 사용가능
+- npm link를 수동으로 사용할 필요없음.
+- package.json 파일의 workspaces 속성을 통해 정의
+- 선언적으로 정의된 속성을 이용하여, npm install 으로 자동 npm link 처리가 가능하다.
+
+### Create Workspaces Root
+
+```bash
+➜ mkdir npm-workspaces-example
+
+➜ cd npm-workspaces-example
+
+➜ npm init -y
+
+➜ code .
+```
+
+````json filename="package.json"
+{
+"name": "npm-workspaces-example",
+"version": "1.0.0",
+"description": "",
+"main": "index.js",
+"scripts": {
+"test": "echo \"Error: no test specified\" && exit 1"
+},
+"keywords": [],
+"author": "",
+"license": "ISC"
+}
+
+```​
+````
+
+### Create Workspaces
+
+```bash
+➜ npm init -y -w ./packages/a
+
+➜ npm init -y -w ./packages/b
+```
+
+```json
+{
+  "name": "npm-workspaces-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "workspaces": ["packages/a", "packages/b"]
+}
+```
+
+```json
+{
+  "name": "npm-workspaces-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "workspaces": ["packages/*"]
+}
+```
+
+### 특정 워크스페이스에 외부 라이브러리 설치 하기
+
+```bash
+➜ npm i -w a axios
+```
+
+```jsx
+// npm-workspaces-example/package-b/index.js
+
+const axios = require("axios");
+
+module.exports = async function () {
+  const response = await axios.get("https://api.github.com/users");
+
+  return response.data;
+};
+```
+
+```jsx
+// npm-workspaces-example/package-a/index.js
+
+const b = require("b");
+
+(async function main() {
+  const users = await b();
+
+  console.log(users.map((user) => user.login).join(", "));
+})();
+```
+
+### workspace 스크립트 실행하기
+
+```bash
+#
+➜ npm start --workspace a
+
+#
+➜ npm start -w a
+
+#
+➜ npm start --workspaces
+
+#
+➜ npm start -ws
+
+#
+➜ npm start -ws --if-present
+// npm start 명령어가 있는 워크스페이스만 실행
+
+#
+➜ npm start -ws --include-workspace-root
+
+#
+➜ npm start -ws --if-present --include-workspace-root
+```
+
+### 의존 관계 살펴보기
+
+```bash
+#
+➜ npm ls
+
+#
+➜ npm ls --all
+
+```
+
+#### node_modules의 근본적인 이슈로 인해 package.json에 등록되지 않은 패키지를 사용할 수 있고, 이는 의도하지 않은 문제를 야기할 수 있다.
+
+## Yarn 살펴보기
+
+- yarn의 workspaces 기능이 npm의 workspaces 기능보다 먼저 나왔다.
+- yarn 1.0부터 기본적으로 사용 가능
+- npm link와 마찬가지로 yarn link를 대신하여 선언적으로 사용 가능하다
+- package.json 파일의 workspaces 속성을 통해 정의하는 것은 npm과 같다.
+- 프로젝트 내의 모든 패키지의 의존성이 함께 설치되고 관리되어 충돌이 적고, 최적화에 유리하다.
+- 최종적으로 npm과 같은 방식이기 때문에 같은 한계를 지니고 있다.
+- yarn 1.x 에서는 루트 프로젝트에 private:true가 설정되어 있어야 한다.(이후 버전에서는 삭제)
+
+### Create Workspaces Root
+
+```bash
+➜ mkdir yarn-classic-workspaces-example
+
+➜ cd yarn-classic-workspaces-example
+
+➜ yarn init -y -p
+
+➜ cat package.json
+```
+
+```json
+{
+  "name": "yarn-classic-workspaces-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true
+}
+```
+
+### Create Workspace
+
+```bash
+➜ mkdir packages packages/a packages/b
+
+➜ cd package/a
+
+➜ yarn init -y
+
+➜ cd ../b
+
+➜ yarn init -y
+
+➜ cd ...
+
+➜ code .
+```
+
+```json
+{
+  "name": "yarn-classic-workspaces-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "workspaces": ["packages/*"]
+}
+```
+
+```bash
+➜ yarn
+```
+
+### 특정 workspace 에 외부 의존성 추가
+
+```bash
+➜ yarn workspace a add axios
+```
+
+```jsx
+// yarn-classic-workspaces-example/package-b/index.js
+
+const axios = require("axios");
+
+module.exports = async function () {
+  const response = await axios.get("https://api.github.com/users");
+
+  return response.data;
+};
+```
+
+```jsx
+// yarn-classic-workspaces-example/package-a/index.js
+
+const b = require("b");
+
+(async function main() {
+  const users = await b();
+
+  console.log(users.map((user) => user.login).join(", "));
+})();
+```
+
+### workspace 스크립트 실행하기
+
+```json
+{
+  "name": "a",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.5.1"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
+```
+
+```bash
+#
+➜ yarn workspace a start
+
+#
+➜ yarn workspaces run start
+```
+
+### workspace 의존 관계 살펴보기
+
+```bash
+#
+➜ yarn workspaces info
+```
+
+## yarn berry
+
+- yarn berry는 yarn의 두번째 버전이고, 2.x부터 시작하여 현재 4.x입니다.
+- 기본적으로 명시적인 의존 관계를 나타내야 사용이 가능하다.
+- node_modules에 패키지를 저장하는 방식이 아니라 패키지를 압축하여 한개의 파일을 .yarn/cache 폴더에 수평적으로 저장하낟. 이러한 방식을 pnp(plug n pay)라고 부른다.
+- 압축 파일을 설치하기 때문에 파일 개수가 감소하여 설치가 빠릅니다. zero install을 이용하여 저장소에서 함께 관리할 수도 있다.
+- 팬턴 디펜던시가 발생하지 않는다.
+  - 내가 설치한 것이 아닌데 다른 패키지에서 설치한 라이브러리를 사용하는 것.
+
+#### core pack?
+
+> 보통 일반적으로 프로젝트에서 사용하는 패키지 매니저(npm, yarn, pnpm)을 package.json에 어떤 패키지 매니저를 사용하고 몇 버전을 쓰는지 명시하게 함.
+
+### Create Workspaces Root with Yarn berry
+
+```bash
+➜ mkdir yarn-berry-workspaces-example
+
+➜ cd yarn-berry-workspaces-example
+
+# Added in: v16.9.0, v14.19.0
+➜ corepack enable
+
+# berry 버전으로 사용한다.(-2) 또한 init하는 이 프로젝트가 워크스페이스의 루트다. (-w)
+➜ yarn init -2 -w
+
+➜ cat package.json
+```
+
+```json
+{
+  "name": "yarn-berry-workspaces-example",
+  "packageManager": "yarn@4.0.1",
+  "workspaces": ["packages/*"]
+}
+```
+
+### Create Workspace
+
+```bash
+➜ mkdir packages/a packages/b
+
+➜ cd package/a
+
+➜ yarn init
+
+➜ cd ../b
+
+➜ yarn init
+
+➜ cd ...
+
+➜ code .
+```
+
+### b에 index.js 생성해주고 package.json에 작성해줌
+
+```json
+{
+  "name": "b",
+  "packageManager": "yarn@4.0.1",
+  "main": "index.js"
+}
+```
+
+### 특정 workspace 에 외부 의존성 추가
+
+```bash
+➜ yarn workspace a add axios
+```
+
+### 의존성 파일이 없는 경우
+
+```bash
+#
+➜ yarn config enableGlobalCache
+
+➜ yarn config set enableGlobalCache false
+
+➜ yarn
+
+➜ cat .yarnrc.yml
+```
+
+### workspace 코드 작성
+
+```jsx filename="yarn-berry-workspaces-example/package-b/index.js"
+const axios = require("axios");
+
+module.exports = async function () {
+  const response = await axios.get("https://api.github.com/users");
+
+  return response.data;
+};
+```
+
+```jsx filename="yarn-berry-workspaces-example/package-a/index.js"
+const b = require("b");
+
+(async function main() {
+  const users = await b();
+
+  console.log(users.map((user) => user.login).join(", "));
+})();
+```
+
+### workspace 스크립트 실행하기
+
+```json
+{
+  "name": "a",
+  "packageManager": "yarn@4.0.1",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
+```
+
+#### 실행하면??
+
+```bash
+#
+➜ yarn workspace a start
+```
+
+- 실행이 안된다. 디펜던시가 적혀져 있지 않다고 추가하라는 에러 메세지를 볼 수 있다.
+
+### workspace 간 의존 관계 정의
+
+```json
+{
+  "name": "a",
+  "packageManager": "yarn@4.0.1",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "b": "workspace:*"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
+```
+
+```bash
+#
+➜ yarn
+
+➜ yarn workspace a start
+```
+
+### workspace 내의 의존 관계 정의
+
+```bash
+#
+➜ yarn workspace a remove axios
+
+➜ yarn workspace b add axios
+
+➜ yarn workspace a start
+```
+
+> b에서 axios를 사용해야 된다면 b에 설치하고 a에서는 b에 대한 표현만 package.json을 작성해준다.
+
+### workspace 의존 관계 살펴보기
+
+```bash
+#
+➜ yarn workspaces list
+```
+
+### 모든 workspace 실행하기
+
+```json
+{
+  "name": "yarn-berry-workspaces-example",
+  "packageManager": "yarn@4.0.1",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "start": "echo \"root\""
+  }
+}
+```
+
+```bash
+#
+➜ yarn workspaces foreach -A run start
+```
+
+### 에디터 SDKs 설치
+
+```bash
+#
+➜ yarn dlx @yarnpkg/sdks vscode
+```
+
+### 한계
+
+- pnp는 기존의 패키지 관리 방식과는 다르기 때문에 어색한 요소들이 있다.
+  - IDE에서 직접 사용하는 많은 도구들을 SDK를 통해 우회 호출할 수 있도록 추가적인 설정이 필요하다.
+- install이 항상 빠른 것은 아니다.
+- zero install 이라고 정말 설치하지 않는 것은 아니다. 또한 압축파일들을 가지고 작업하면, 저장소 자체가 매우 커질 수 있다.
+
+## Pnpm
+
+- 빠르고, 효율적인 패키지 매니저
+- 모노레포를 지원하고, 평탄하지 않은 node_modules가 기본이기 때문에 엄격한 의존 관리가 가능하다.
+- 시스템 내에 단일 패키지 스토어에 모든 의존성을 보관하기 때문에 디스크 공간이 절약된다.
+- 필요한 의존성을 식별하여 스토어로 가져오고, 디렉토리 구조를 계산하여 하드 링크하는 과정을 가지기 때문에 설치 속도가 빠르다.
+- 기본적으로, pnpm은 symlink를 사용하여 프로젝트의 직접적인 의존성만을 모듈 디렉토리의 루트로 추가한다.
+
+### Create Workspaces Root
+
+```bash
+➜ mkdir pnpm-workspaces-example
+
+➜ cd pnpm-workspaces-example
+
+➜ corepack enable
+
+➜ pnpm init
+
+➜ corepack use pnpm@8.10.0
+
+➜ cat package.json
+
+➜ yarn
+```
+
+```json
+{
+  "name": "pnpm-workspaces-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@8.10.0+sha1.77d568bacf41eeefd6695a7087c1282433955b5c"
+}
+```
+
+### Create Workspace
+
+```bash
+➜ mkdir packages packages/a packages/b
+
+➜ cd package/a
+
+➜ pnpm init
+
+➜ cd ../b
+
+➜ pnpm init
+
+➜ cd ...
+
+➜ code .
+```
+
+#### pnpm은 루트 폴더의 yaml 파일을 생성해준다.
+
+```yaml
+# pnpm-workspace.yaml
+
+packages:
+  - "packages/*"
+```
+
+### 특정 workspace 에 외부 의존성 추가
+
+- 실제 a의 package.json을 보면 설치된 것을 볼 수 있다.
+
+```bash
+➜ pnpm --filter a add axios
+```
+
+### workspace 코드 작성
+
+```jsx
+// pnpm-workspaces-example/package-b/index.js
+
+const axios = require("axios");
+
+module.exports = async function () {
+  const response = await axios.get("https://api.github.com/users");
+
+  return response.data;
+};
+```
+
+```jsx
+// pnpm-workspaces-example/package-a/index.js
+
+const b = require("b");
+
+(async function main() {
+  const users = await b();
+
+  console.log(users.map((user) => user.login).join(", "));
+})();
+```
+
+### workspace 스크립트 실행하기
+
+```json
+{
+  "name": "a",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
+```
+
+#### a 실행하기
+
+- 모듈을 찾을 수 없다는 에러가 나온다.
+  - a에 b를 표현하지 않아서.
+
+```bash
+#
+➜ pnpm --filter a start
+```
+
+### workspace 간 의존 관계 정의
+
+```json
+{
+  "name": "a",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "b": "workspace:*"
+  }
+}
+```
+
+```bash
+#
+➜ pnpm i
+
+➜ pnpm --filter a start
+```
+
+### workspace 내의 의존 관계 정의
+
+- axios가 없다고 한다. (a는 있지만 b에는 없다.)
+  - 그래서 a에서 삭제해주고, b에 설치
+
+```bash
+#
+➜ pnpm --filter a remove axios
+
+➜ pnpm --filter b add axios
+
+➜ pnpm --filter a start
+```
+
+### 모든 workspace 실행하기
+
+```json
+{
+  "name": "pnpm-workspaces-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"root\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@8.10.0+sha1.77d568bacf41eeefd6695a7087c1282433955b5c"
+}
+```
+
+```bash
+#
+➜ pnpm -r run start
+
+➜ pnpm -r --include-workspace-root run start
+```
+
+### workspace 의존 관계 살펴보기
+
+```bash
+#
+➜ pnpm -r list
+```
+
+### 특정한 패키지 저장소 지정하기
+
+```bash
+#
+➜ pnpm config get store-dir
+
+➜ pnpm config set store-dir ~/.pnpm-store
+```
+
+### pnpm 정리
+
+- pnpm은 기존의 방식을 해치지 않으며, 빠르고 효율적인 방식을 사용한다.
+- 모노레포를 지원ㅇ하며, 엄격한 의존성 해석을 통해 의도하지 않게 사용되는 경우를 피할 수 있다.
+- pnpm workspaces를 이용해서 프로젝트 내 특정 폴더를 패키지로 활용하는 방법
+- 여러가지 장점으로 인해 모노레포를 운영할 수 있는 좋은 패키지 매니저로 부상하고 있다.
+
+### 결과
+
+> 여러 패키지 매니저들을 공부하고 차이점을 알 수 있어서 좋았다. 유령 의존성이 무엇인지 실감했고 프로젝트 설정시에 아무 생각없이 따라 치던 명령어들이
+> 어떤 식으로 동작하는지, 어떤 의미를 가지는지 알 수 있어서 좋았다. 또한 프로젝트 매니저의 발전 과정과 그 이유를 알게 되어서 되게 좋았다. 다음에는 빌드 도구들을 좀 살펴보고 본격적으로 모노레포를 구성해서 프로젝트를 만들어보자.
