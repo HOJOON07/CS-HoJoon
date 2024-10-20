@@ -46,6 +46,8 @@ Given an array of integers temperatures represents the daily temperatures, retur
 
 ## Solution
 
+- 파이썬
+
 ```python
 class Solution:
     def dailyTemperatures(self, temperatures: List[int]) -> List[int]:
@@ -57,4 +59,21 @@ class Solution:
                 ans[prev_day] = cur_day - prev_day
             stack.append((cur_day, cur_temp))
         return ans
+```
+
+### JS로 풀어보기
+
+```js
+function dailyTemperatures(temperatures) {
+  const ans = Array(temperatures.length).fill(0);
+  const stack = [];
+  temperatures.forEach((temp, day) => {
+    while (stack.length !== 0 && stack[stack.length - 1].temp < temp) {
+      const { day: prev_day } = stack.pop();
+      ans[prev_day] = day - prev_day;
+    }
+    stack.push({ day, temp });
+  });
+  return ans;
+}
 ```
